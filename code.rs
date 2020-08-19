@@ -1,0 +1,1 @@
+fn main() {    let hey: u8 = 55;    println!("{}", hey);}
