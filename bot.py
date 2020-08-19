@@ -24,9 +24,15 @@ async def on_message(message):
         embed = discord.Embed(
             title=f'{splited[1]}', description=f'docs.rs : https://docs.rs/{splited[1]}\ncrates.io : https://crates.io/crates/{splited[1]}', color=00)
         await message.channel.send(f"<@{message.author.id}>\n", embed=embed)
-    if message.content.startswith(PREFIX + 'test_file'):
+    if message.content.startswith(PREFIX + 'playground'):
         splited = message.content.split('\n')
-        play(splited)
+        stderr, stdout = play(splited)
+        if stdout == "":
+            await message.channel.send(f"Standard error : ```" + stderr.replace('`', '\'') + "```\n```No standard "
+                                                                                             "output !```")
+        else:
+            await message.channel.send(
+                f"Standard error : ```" + stderr.replace('`', '\'') + f"```\nStandard output : ```{stdout}```")
         return
 
 try:

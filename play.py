@@ -13,10 +13,10 @@ def play(code):
                      assemblyFlavor="att",
                      demangleAssembly="demangle", target="ast", execute=True)
     data: bytes = json.dumps(json_data).encode('utf-8')
-    print(type(data))
     url = "https://play.rust-lang.org/execute"
     response = urlopen(url, data)
     ret = json.loads(response.read())
     for key, value in ret.items():
         ret[key] = str(value).rstrip()
+    bfile.close()
     return ret["stderr"], ret["stdout"]
