@@ -1,2 +1,4 @@
 assets/
 *.rs
+.idea/
+__pycache__/
