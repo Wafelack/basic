@@ -8,7 +8,6 @@ TOKEN = json.load(open("assets/token.json", "r"))['token']
 
 client = discord.Client()
 PREFIX = '!'
-WAFEID = 723862906755743804
 
 async def delout(message, user):
     def check(reaction, user):
@@ -46,9 +45,6 @@ async def on_message(message):
         await msg.add_reaction("🗑")
         client.loop.create_task(delout(msg, message.author))
         return
-    if message.content == PREFIX + "make_me_rustacean":
-        await message.author.add_roles(message.author.guild.get_role(743864011334090762))
-        await message.channel.send("Le rôle vous a été donné avec succès !")
     if message.content == PREFIX + "btc":
         VALUES = json.loads(urllib.request.urlopen('https://blockchain.info/ticker').read().decode())
         buy_usd = VALUES['USD']['buy']
@@ -67,7 +63,7 @@ async def on_message(message):
 
     if message.content == PREFIX + "help":
         embed = discord.Embed(title="Rustacean",
-                              description="**!make_me_rustacean** : Gives you the role Rustacean\n**!get_crate <crate_name>** : Gives you the link of a crate\n**!playground \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground")
+                              description="**!get_crate <crate_name>** : Gives you the link of a crate\n**!playground \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground")
         embed.set_author(name="Rustacean",
                          icon_url="https://cdn.discordapp.com/attachments/727885557430222849/754727660432785428/rustacean-flat-noshadow.png")
         embed.set_footer(text="!help • Copyleft Wafelack • Rustacean")
