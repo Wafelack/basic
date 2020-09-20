@@ -10,6 +10,14 @@ client = discord.Client()
 PREFIX = '!'
 WAFEID = 723862906755743804
 
+async def delout(message, user):
+    def check(reaction, user):
+        return str(reaction.emoji) == "🗑" and reaction.count > 1 and user == user and reaction.message.id == message.id
+
+    reaction, user = await client.wait_for('reaction_add', check=check)
+    if check(reaction, user):
+        await message.delete()
+
 
 @client.event
 async def on_ready():
@@ -29,11 +37,14 @@ async def on_message(message):
         splited = message.content.split('\n')
         stderr, stdout = play(splited)
         if stdout == "":
-            await message.channel.send(f"Standard error : ```" + stderr.replace('`', '\'') + "```\n```No standard "
+            msg = await message.channel.send(f"Standard error : ```" + stderr.replace('`', '\'') + "```\n```No standard "
                                                                                              "output !```")
         else:
-            await message.channel.send(
+            msg = await message.channel.send(
                 f"Standard error : ```" + stderr.replace('`', '\'') + f"```\nStandard output : ```{stdout}```")
+
+        await msg.add_reaction("🗑")
+        client.loop.create_task(delout(msg, message.author))
         return
     if message.content == PREFIX + "make_me_rustacean":
         await message.author.add_roles(message.author.guild.get_role(743864011334090762))

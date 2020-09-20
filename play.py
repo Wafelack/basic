@@ -5,7 +5,7 @@ from urllib.request import urlopen
 def play(code):
     file = open('code.rs', 'w')
     for i in range(1, len(code)):
-        file.write(code[i].replace('`', ''))
+        file.write(code[i].replace('```rs', '').replace('```rust', '').replace('`', ''))
     file.close()
     bfile = open('code.rs', 'rb')
 
