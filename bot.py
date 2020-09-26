@@ -32,7 +32,7 @@ async def on_message(message):
         embed = discord.Embed(
             title=f'{splited[1]}', description=f'docs.rs : https://docs.rs/{splited[1]}\ncrates.io : https://crates.io/crates/{splited[1]}', color=00)
         await message.channel.send(f"<@{message.author.id}>\n", embed=embed)
-    if message.content.startswith(PREFIX + 'playground'):
+    if message.content.startswith(PREFIX + 'playground') or message.content.startswith(PREFIX + 'run'):
         splited = message.content.split('\n')
         stderr, stdout = play(splited)
         if stdout == "":
@@ -63,7 +63,7 @@ async def on_message(message):
 
     if message.content == PREFIX + "help":
         embed = discord.Embed(title="Rustacean",
-                              description="**!get_crate <crate_name>** : Gives you the link of a crate\n**!playground \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground")
+                              description="**!get_crate <crate_name>** : Gives you the link of a crate\n**!playground** or **!run \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground")
         embed.set_author(name="Rustacean",
                          icon_url="https://cdn.discordapp.com/attachments/727885557430222849/754727660432785428/rustacean-flat-noshadow.png")
         embed.set_footer(text="!help • Copyleft Wafelack • Rustacean")
