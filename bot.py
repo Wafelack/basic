@@ -85,7 +85,7 @@ async def on_message(message):
 
     if message.content == PREFIX + "help":
         embed = discord.Embed(title="Rustacean",
-                              description=f"**{PREFIX}get_crate <crate_name>** : Gives you the link of a crate\n**{PREFIX}playground** or **{PREFIX}run \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground\n**{PREFIX}btc** : Gives you the bitcoin value in EUR, USD and RUB")
+                              description=f"**{PREFIX}get_crate <crate_name>** : Gives you the link of a crate\n**{PREFIX}playground** or **{PREFIX}run \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground\n**{PREFIX}btc** : Gives you the bitcoin value in EUR, USD and RUB\n**{PREFIX}book <concept>** : Gives you the rustbook's link of a rust concept")
         embed.set_author(name="Rustacean",
                          icon_url="https://cdn.discordapp.com/attachments/727885557430222849/754727660432785428/rustacean-flat-noshadow.png")
         embed.set_footer(text="!help • Copyleft Wafelack • Rustacean")
