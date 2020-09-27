@@ -7,7 +7,7 @@ import asyncio
 TOKEN = json.load(open("assets/token.json", "r"))['token']
 
 client = discord.Client()
-PREFIX = '!'
+PREFIX = '&'
 
 async def delout(message, user):
     def check(reaction, user):
@@ -20,7 +20,7 @@ async def delout(message, user):
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Activity(name='!playground', type=discord.ActivityType.playing))
+    await client.change_presence(activity=discord.Activity(name=f'{PREFIX}run <rust_code>', type=discord.ActivityType.playing))
     print("FerriBot is ready")
 @client.event
 async def on_message(message):
@@ -63,7 +63,7 @@ async def on_message(message):
 
     if message.content == PREFIX + "help":
         embed = discord.Embed(title="Rustacean",
-                              description="**!get_crate <crate_name>** : Gives you the link of a crate\n**!playground** or **!run \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground")
+                              description=f"**{PREFIX}get_crate <crate_name>** : Gives you the link of a crate\n**{PREFIX}playground** or **{PREFIX}run \`\`\`rs\n\t<code>\`\`\`** : Runs the code on the rust playground\n**{PREFIX}btc** : Gives you the bitcoin value in EUR, USD and RUB")
         embed.set_author(name="Rustacean",
                          icon_url="https://cdn.discordapp.com/attachments/727885557430222849/754727660432785428/rustacean-flat-noshadow.png")
         embed.set_footer(text="!help • Copyleft Wafelack • Rustacean")
