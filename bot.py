@@ -22,13 +22,35 @@ async def delout(message, user):
 async def on_ready():
     await client.change_presence(activity=discord.Activity(name=f'{PREFIX}run <rust_code>', type=discord.ActivityType.playing))
     print("FerriBot is ready")
+
+
+RUSTLINKS = json.load(open("assets/rustlinks.json"))['LINKS']
+
 @client.event
 async def on_message(message):
+    if message.content.startswith(PREFIX + 'book'):
+        splited = message.content.split(' ', 1)
+        if len(splited) != 2:
+            await message.channel.send(f"Usage : {PREFIX}book <concept>")
+            return
+
+        if splited[1] in RUSTLINKS.keys():
+            embed = discord.Embed(title=splited[1], description=RUSTLINKS[splited[1]], color=0xff8800)
+            embed.set_footer(text=f"{PREFIX}book • Wafelack • Rust Book")
+            await message.channel.send(embed=embed)
+        else:
+            concepts = "\n•".join(RUSTLINKS.keys())
+            embed = discord.Embed(title=f"Concept `{splited[1]}` not found.", description=f"**Available concepts :**\n\n•{concepts}", color=0xff0000)
+            embed.set_footer(text=f"{PREFIX}book • Wafelack • Rust Book")
+            await message.channel.send(embed=embed)
+
     if message.content.startswith(PREFIX + 'get_crate'):
         splited = message.content.split(' ', 2)
         if len(splited) != 2:
             await message.channel.send(f"Usage : {PREFIX}get_crate <crate>")
             return
+
+
         embed = discord.Embed(
             title=f'{splited[1]}', description=f'docs.rs : https://docs.rs/{splited[1]}\ncrates.io : https://crates.io/crates/{splited[1]}', color=00)
         await message.channel.send(f"<@{message.author.id}>\n", embed=embed)
