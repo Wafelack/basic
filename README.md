@@ -1,6 +1,6 @@
 # FerriBot
 
-Discord bot that can find a crate's link and run rust code on the [rust playground](https://play.rust-lang.org)
+Discord bot about [rust](https://rust-lang.org) that can find a crate's link, give a rust concept's rust book link, say the btc value and run rust code on the [rust playground](https://play.rust-lang.org)
 
 PREFIX : `&`
 
