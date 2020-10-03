@@ -4,7 +4,7 @@ Discord bot that can find a crate's link and run rust code on the [rust playgrou
 
 PREFIX : `&`
 
-<i> I was inspired by [ritiek's project](https://github.com/ritiek/rust-without-rust) to make the run command</i>
+<i> I was inspired by [ritiek's project](https://github.com/ritiek/rust-without-rust) to make the run [command](#playground-alias-run)</i>
 
 <br>
 
