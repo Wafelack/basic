@@ -12,16 +12,19 @@ PREFIX : `&`
 
 ### get_crate
 
-![image](https://user-images.githubusercontent.com/61330081/90750821-a73e2280-e2d5-11ea-924e-ebf80c1c2667.png)
+
+![image](https://user-images.githubusercontent.com/61330081/96361521-b64f1e80-1126-11eb-9ce8-889fa2f8d750.png)
+
 
 ### playground (alias run)
 
-![image](https://user-images.githubusercontent.com/61330081/90751002-db194800-e2d5-11ea-8817-747f72d64168.png)
+![image](https://user-images.githubusercontent.com/61330081/96361504-9a4b7d00-1126-11eb-9f7f-d73c5aaf1c53.png)
 
 ### btc
 
-![image](https://user-images.githubusercontent.com/61330081/94991089-e7edb480-0580-11eb-8d13-f57abdd1bd48.png)
+![image](https://user-images.githubusercontent.com/61330081/96361529-c404a400-1126-11eb-9bd1-8f2e76b5571d.png)
+
 
 ### book
 
-![image](https://user-images.githubusercontent.com/61330081/94991102-fdfb7500-0580-11eb-8726-24406f6fdba3.png)
+![image](https://user-images.githubusercontent.com/61330081/96361535-d383ed00-1126-11eb-950d-a747560728a2.png)
