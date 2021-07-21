@@ -1,15 +1,16 @@
 #include "8k/lexer.h"
+#include "utils.h"
 #include <stdlib.h>
 
 int
 main (void)
 {
-  Lexer lexer = lexer_new ("42 3.14159265358926535897932", "test");
+  Lexer lexer = lexer_new ("(K9+55)*3.1415^14", "test");
   int err;
   uint32_t i;
   if (err = lex (&lexer), err)
     {
-      lexer_print_err (lexer, err);
+      print_err (lexer.file, lexer.line, err);
       return EXIT_FAILURE;
     }
   for (i = 0; i < lexer.count; i++)

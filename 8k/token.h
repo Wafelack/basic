@@ -3,15 +3,24 @@
 
 #include <stdint.h>
 
-typedef enum ttype {
-  Number
+typedef enum ttype
+{
+  Number,
+  Ident,
+  Operator,
+  OpenParen,
+  CloseParen
 } TType;
 
-typedef struct token {
+typedef struct token
+{
   TType type;
   uint32_t line;
-  union {
+  union
+  {
     double number;
+    const char *s;
+    char c;
   } value;
 } Token;
 

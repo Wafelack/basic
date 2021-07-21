@@ -3,7 +3,7 @@
 
 #include "token.h"
 
-typedef struct lexer 
+typedef struct lexer
 {
   const char *input, *file;
   uint32_t count, start, current, line;
@@ -12,6 +12,5 @@ typedef struct lexer
 
 Lexer lexer_new (const char *, const char *);
 int lex (Lexer *);
-void lexer_print_err (Lexer, int);
 
 #endif

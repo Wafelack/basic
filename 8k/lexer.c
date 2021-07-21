@@ -1,11 +1,11 @@
 #include "lexer.h"
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <errno.h>
 
-Lexer 
+Lexer
 lexer_new (const char *input, const char *file)
 {
   Lexer lexer;
@@ -19,7 +19,7 @@ lexer_new (const char *input, const char *file)
   return lexer;
 }
 char
-is_at_end(Lexer *self)
+is_at_end (Lexer *self)
 {
   return self->current >= strlen (self->input);
 }
@@ -43,6 +43,7 @@ advance (Lexer *self)
 int
 add_token (Lexer *self, Token token)
 {
+  token.line = self->line;
   self->output = realloc (self->output, (self->count + 1) * sizeof (Token));
   if (!self->output)
     return -3;
@@ -65,7 +66,7 @@ number (Lexer *self)
 
   raw = malloc (self->current - self->start + 1);
   if (!raw)
-    return -1;
+    return -3;
   for (i = self->start; i < self->current; i++)
     raw[i - self->start] = self->input[i];
   errno = 0;
@@ -78,8 +79,32 @@ number (Lexer *self)
   free (raw);
   tok.type = Number;
   tok.value.number = val;
-  tok.line = self->line;
   return add_token (self, tok);
+}
+int
+ident (Lexer *self, char current)
+{
+  Token tok;
+  size_t len, start = self->current - 1;
+  char *ident;
+
+  if (isdigit (peek (self, 0)))
+    self->current++;
+  len = self->current - start;
+  ident = malloc (len + 1);
+
+  if (!ident)
+    return -3;
+  ident[0] = current;
+  ident[1] = len > 1 ? self->input[self->current - 1] : 0;
+  if (len > 1)
+    ident[2] = 0;
+
+  tok.type = Ident;
+  tok.value.s = ident;
+  add_token (self, tok);
+
+  return 0;
 }
 int
 lex_token (Lexer *self)
@@ -90,52 +115,59 @@ lex_token (Lexer *self)
 
   if (isdigit (current))
     return number (self);
-  
+
   switch (current)
-  {
+    {
     case '\n':
       self->line++;
       break;
-    case '\r': 
-    case ' ': 
-    case '\t': 
+    case '\r':
+    case ' ':
+    case '\t':
+      break;
+    case '+':
+    case '-':
+    case '/':
+    case '*':
+    case '^':
+      {
+        Token tok;
+        tok.type = Operator;
+        tok.value.c = current;
+        add_token (self, tok);
+      }
+      break;
+    case '(':
+      {
+        Token tok;
+        tok.type = OpenParen;
+        add_token (self, tok);
+      }
+      break;
+    case ')':
+      {
+        Token tok;
+        tok.type = CloseParen;
+        add_token (self, tok);
+      }
       break;
     default:
+      if (isalpha (current))
+        return ident (self, current);
       printf ("%c\n", current);
       break;
-  }
+    }
   return 0;
 }
 int
 lex (Lexer *self)
 {
   while (!is_at_end (self))
-  {
-    int ret = lex_token (self);
-    if (ret)
-      return ret;
-    self->start = self->current;
-  }
+    {
+      int ret = lex_token (self);
+      if (ret)
+        return ret;
+      self->start = self->current;
+    }
   return 0;
-}
-void
-lexer_print_err (Lexer lexer, int code)
-{
-  fprintf (stderr, "%s:%u: ", lexer.file, lexer.line);
-  switch (code)
-  {
-    case -1:
-      fprintf (stderr, "unexpected EOF.");
-      break;
-    case -2:
-      fprintf (stderr, "invalid number.");
-      break;
-    case -3:
-      fprintf (stderr, "allocation failed.");
-      break;
-    default:
-      fprintf (stderr, "unknown error code: %d.", code);
-      break;
-  }
-  fprintf (stderr, "\n");
 }

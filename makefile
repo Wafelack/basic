@@ -10,3 +10,6 @@ all: $(OBJS)
 clean:
 	rm -rf $(OBJS)
 	rm -f basic
+format:
+	clang-format --style=GNU -i $(SRCS) $(shell find ./ -name "*.h")
+.PHONY: clean
