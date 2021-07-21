@@ -9,7 +9,9 @@ typedef enum ttype
   Ident,
   Operator,
   OpenParen,
-  CloseParen
+  CloseParen,
+  Let,
+  Print
 } TType;
 
 typedef struct token
@@ -19,7 +21,7 @@ typedef struct token
   union
   {
     double number;
-    const char *s;
+    char *s;
   } value;
 } Token;
 

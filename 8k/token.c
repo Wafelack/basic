@@ -22,6 +22,12 @@ token_print (Token token)
     case CloseParen:
       printf (")");
       break;
+    case Let:
+      printf ("LET");
+      break;
+    case Print:
+      printf ("PRINT");
+      break;
     }
   puts ("");
 }

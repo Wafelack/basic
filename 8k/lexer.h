@@ -11,6 +11,7 @@ typedef struct lexer
 } Lexer;
 
 Lexer lexer_new (const char *, const char *);
+void destroy_lexer (Lexer);
 int lex (Lexer *);
 
 #endif

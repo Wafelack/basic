@@ -5,6 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct builtin
+{
+  const char *name;
+  TType tok;
+} Builtin;
+
+static Builtin builtins[] = {
+  { "LET", Let },
+  { "PRINT", Print },
+  { NULL }
+};
+
 Lexer
 lexer_new (const char *input, const char *file)
 {
@@ -17,6 +29,26 @@ lexer_new (const char *input, const char *file)
   lexer.count = 0;
   lexer.output = NULL;
   return lexer;
+}
+void
+destroy_lexer (Lexer lexer)
+{
+  size_t i = 0;
+  for (i = 0; i < lexer.count; i++)
+    {
+      Token tok = lexer.output[i];
+      switch (tok.type)
+        {
+          case Ident:
+          case Operator:
+            free (tok.value.s);
+            break;
+          default:
+            break;
+        }
+    }
+  if (lexer.output)
+    free (lexer.output);
 }
 char
 is_at_end (Lexer *self)
@@ -106,15 +138,39 @@ ident (Lexer *self, char current)
 
   return 0;
 }
+char
+check_many (Lexer *self, const char *name)
+{
+  size_t i, length = strlen (name);
+  for (i = 0; i < length; i++)
+    if (self->input[self->current + i - 1] != name[i])
+      return 0;
+  return 1;
+}
+
 int
 lex_token (Lexer *self)
 {
   char current;
+  size_t i; 
   if (current = advance (self), current == -1)
     return -1;
 
   if (isdigit (current))
     return number (self);
+
+  for (i = 0; builtins[i].name; i++)
+    {
+      const char *name = builtins[i].name;
+      if (check_many (self, name))
+        {
+          Token tok;
+          self->current += strlen (name) - 1;
+          tok.type = builtins[i].tok;
+          add_token (self, tok);
+          return 0;
+        }
+    }
 
   switch (current)
     {
