@@ -14,7 +14,7 @@ token_print (Token token)
       printf ("Ident: %s", token.value.s);
       break;
     case Operator:
-      printf ("Operator: %c", token.value.c);
+      printf ("Operator: %s", token.value.s);
       break;
     case OpenParen:
       printf ("(");

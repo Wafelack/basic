@@ -130,10 +130,43 @@ lex_token (Lexer *self)
     case '/':
     case '*':
     case '^':
+    case '=':
       {
         Token tok;
+        char *lit = malloc (2);
+        if (!lit)
+          return -3;
+        lit[0] = current;
+        lit[1] = 0;
         tok.type = Operator;
-        tok.value.c = current;
+        tok.value.s = lit;
+        add_token (self, tok);
+      }
+      break;
+    case '<':
+    case '>':
+      {
+        Token tok;
+        char *lit;
+        tok.type = Operator;
+        if (peek (self, 0) == '=' || (current == '<' && peek (self, 0) == '>'))
+          {
+            lit = malloc (3);
+            if (!lit)
+              return -3;
+            lit[0] = current;
+            lit[1] = advance (self);
+            lit[2] = 0;
+          }
+        else
+        {
+          lit = malloc (2);
+          if (!lit)
+            return -3;
+          lit[0] = current;
+          lit[1] = 0;
+        }
+        tok.value.s = lit;
         add_token (self, tok);
       }
       break;

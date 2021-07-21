@@ -20,7 +20,6 @@ typedef struct token
   {
     double number;
     const char *s;
-    char c;
   } value;
 } Token;
 

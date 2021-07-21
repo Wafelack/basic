@@ -5,7 +5,7 @@
 int
 main (void)
 {
-  Lexer lexer = lexer_new ("(K9+55)*3.1415^14", "test");
+  Lexer lexer = lexer_new ("(K9 + 55) * 3.1415 ^ 14\n3 = 1 + 1  78 <= 99 52 <> 3.14", "test");
   int err;
   uint32_t i;
   if (err = lex (&lexer), err)
