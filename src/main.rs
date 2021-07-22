@@ -1,8 +1,8 @@
-mod k8;
 mod errors;
+mod k8;
 
+pub use errors::{Error, Result};
 use std::process::exit;
-pub use errors::{Result, Error};
 
 fn try_main() -> Result<()> {
     warn!(file!().to_string(), line!() => "foobar");

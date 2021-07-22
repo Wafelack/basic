@@ -1,4 +1,4 @@
-use crate::{Result, error};
+use crate::{error, Result};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TType {
@@ -59,8 +59,8 @@ impl Lexer {
             line: self.line,
         })
     }
-    fn number(&mut self, c: char) -> Result<()> {  
-        let mut raw = c.to_string ();
+    fn number(&mut self, c: char) -> Result<()> {
+        let mut raw = c.to_string();
         while self.peek().unwrap_or('\0').is_digit(10) {
             raw.push(self.advance()?);
         }
@@ -91,7 +91,9 @@ impl Lexer {
             error!(self.file, self.line => "Expected `\"`, found EOF.")
         } else {
             self.advance()?; // Closing \n
-            self.add_token(TType::String(self.input[start..self.current - 1].to_string()));
+            self.add_token(TType::String(
+                self.input[start..self.current - 1].to_string(),
+            ));
             Ok(())
         }
     }
@@ -107,7 +109,7 @@ impl Lexer {
         }
         None
     }
-    fn once(& mut self) -> Result<()> {
+    fn once(&mut self) -> Result<()> {
         let current = self.advance()?;
         match current {
             ' ' | '\r' | '\t' => {}
@@ -122,27 +124,32 @@ impl Lexer {
                     self.advance()?;
                     TType::Neq
                 } else {
-                    TType::Ord(current == '>', if self.peek() == Some('=') {
-                        self.advance()?;
-                        true
-                    } else { false })
+                    TType::Ord(
+                        current == '>',
+                        if self.peek() == Some('=') {
+                            self.advance()?;
+                            true
+                        } else {
+                            false
+                        },
+                    )
                 };
                 self.add_token(token);
-            },
+            }
             '=' => self.add_token(TType::Eq),
             _ => match self.check_builtin() {
                 Some(builtin) => self.add_token(builtin),
                 None => {
                     let start = self.current - 1;
                     if let Some(c) = self.peek() {
-                        if c.is_digit(10) { 
+                        if c.is_digit(10) {
                             self.current += 1;
                         }
                     }
                     self.add_token(TType::Ident(self.input[start..self.current].to_string()))
                 }
             },
-         }
+        }
         Ok(())
     }
     pub fn lex(mut self) -> Result<Self> {
@@ -160,56 +167,96 @@ mod test {
     #[test]
     fn numbers() -> Result<()> {
         let tokens = Lexer::new("42 3.1415926", "test")
-                        .lex()?
-                        .output
-                        .into_iter()
-                        .map(|t| t.ttype)
-                        .collect::<Vec<TType>>();
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
         assert_eq!(tokens, vec![TType::Number(42.), TType::Number(3.1415926)]);
         Ok(())
     }
     #[test]
     fn ident() -> Result<()> {
         let tokens = Lexer::new("k8 8k KK", "test")
-                        .lex()?
-                        .output
-                        .into_iter()
-                        .map(|t| t.ttype)
-                        .collect::<Vec<TType>>();
-        assert_eq!(tokens, vec![TType::Ident("k8".to_string()), TType::Number(8.), TType::Ident("k".to_string()), TType::Ident("K".to_string()), TType::Ident("K".to_string())]);
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
+        assert_eq!(
+            tokens,
+            vec![
+                TType::Ident("k8".to_string()),
+                TType::Number(8.),
+                TType::Ident("k".to_string()),
+                TType::Ident("K".to_string()),
+                TType::Ident("K".to_string())
+            ]
+        );
         Ok(())
     }
     #[test]
     fn operators() -> Result<()> {
         let tokens = Lexer::new("(5+5*4)=<><=< >=>/↑^-", "test")
-                        .lex()?
-                        .output
-                        .into_iter()
-                        .map(|t| t.ttype)
-                        .collect::<Vec<TType>>();
-        assert_eq!(tokens, vec![TType::OpenParen, TType::Number(5.), TType::Arithmetic('+'), TType::Number(5.), TType::Arithmetic('*'), TType::Number(4.), TType::CloseParen, TType::Eq, TType::Neq, TType::Ord(false, true), TType::Ord(false, false), TType::Ord(true, true), TType::Ord(true, false), TType::Arithmetic('/'), TType::Arithmetic('^'), TType::Arithmetic('^'), TType::Arithmetic('-')]);
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
+        assert_eq!(
+            tokens,
+            vec![
+                TType::OpenParen,
+                TType::Number(5.),
+                TType::Arithmetic('+'),
+                TType::Number(5.),
+                TType::Arithmetic('*'),
+                TType::Number(4.),
+                TType::CloseParen,
+                TType::Eq,
+                TType::Neq,
+                TType::Ord(false, true),
+                TType::Ord(false, false),
+                TType::Ord(true, true),
+                TType::Ord(true, false),
+                TType::Arithmetic('/'),
+                TType::Arithmetic('^'),
+                TType::Arithmetic('^'),
+                TType::Arithmetic('-')
+            ]
+        );
         Ok(())
     }
     #[test]
     fn string() -> Result<()> {
         let tokens = Lexer::new("\"Hello, World !\"", "test")
-                        .lex()?
-                        .output
-                        .into_iter()
-                        .map(|t| t.ttype)
-                        .collect::<Vec<TType>>();
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
         assert_eq!(tokens, vec![TType::String("Hello, World !".to_string())]);
         Ok(())
     }
     #[test]
     fn builtins() -> Result<()> {
         let tokens = Lexer::new("LETX=5\nPRINT 3", "test")
-                        .lex()?
-                        .output
-                        .into_iter()
-                        .map(|t| t.ttype)
-                        .collect::<Vec<TType>>();
-        assert_eq!(tokens, vec![TType::Let, TType::Ident("X".to_string()), TType::Eq, TType::Number(5.), TType::Print, TType::Number(3.)]);
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
+        assert_eq!(
+            tokens,
+            vec![
+                TType::Let,
+                TType::Ident("X".to_string()),
+                TType::Eq,
+                TType::Number(5.),
+                TType::Print,
+                TType::Number(3.)
+            ]
+        );
         Ok(())
     }
 }

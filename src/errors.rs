@@ -1,4 +1,7 @@
-use std::{env, fmt::{self, Formatter, Display}};
+use std::{
+    env,
+    fmt::{self, Display, Formatter},
+};
 
 #[derive(Debug)]
 pub struct Alert(pub Option<(String, u32)>, pub String);
@@ -37,7 +40,7 @@ macro_rules! make_alert {
              )?
             $crate::errors::Alert(_fl, format_args!($($arg)*).to_string())
 
-        }   
+        }
     }
 }
 #[macro_export]
