@@ -5,16 +5,26 @@ pub enum TType {
     String(String),
     Ident(String),
     Number(f64),
+    LN(u32),
+
     Eq,
     Neq,
     Ord(bool /* greater */, bool /* equal */),
     Arithmetic(char),
-    Let,
-    Print,
+
     OpenParen,
     CloseParen,
     Backslash,
-    LN(u32),
+    Coma,
+
+    Let,
+    Print,
+    Rem,
+    End,
+    Stop,
+    Read,
+    Data,
+    Restore
 }
 #[derive(Clone)]
 pub struct Token {
@@ -22,7 +32,7 @@ pub struct Token {
     pub line: u32,
 }
 
-const BUILTINS: [(&str, TType); 2] = [("LET", TType::Let), ("PRINT", TType::Print)];
+const BUILTINS: [(&str, TType); 8] = [("LET", TType::Let), ("PRINT", TType::Print), ("REM", TType::Rem), ("END", TType::End), ("STOP", TType::Stop), ("DATA", TType::Data), ("RESTORE", TType::Restore), ("READ", TType::Read)];
 
 pub struct Lexer {
     input: String,
@@ -131,6 +141,7 @@ impl Lexer {
             '(' => self.add_token(TType::OpenParen),
             ')' => self.add_token(TType::CloseParen),
             '"' => return self.string(),
+            ',' => self.add_token(TType::Coma),
             x if x.is_digit(10) => return self.number(x),
             '+' | '-' | '/' | '*' | '^' => self.add_token(TType::Arithmetic(current)),
             '<' | '>' => {
@@ -151,7 +162,7 @@ impl Lexer {
                 self.add_token(token);
             }
             '=' => self.add_token(TType::Eq),
-            _ => match self.check_builtin() {
+            x if x.is_alphabetic() => match self.check_builtin() {
                 Some(builtin) => self.add_token(builtin),
                 None => {
                     let start = self.current - 1;
@@ -163,6 +174,7 @@ impl Lexer {
                     self.add_token(TType::Ident(self.input[start..self.current].to_string()))
                 }
             },
+            x => return error!(self.file, self.line => "Unrecognized character: `{}`.", x),
         }
         Ok(())
     }
@@ -261,6 +273,17 @@ mod test {
             .map(|t| t.ttype)
             .collect::<Vec<TType>>();
         assert_eq!(tokens, vec![TType::LN(10), TType::Print, TType::Number(5.), TType::Backslash, TType::LN(20), TType::Number(55.)]);
+        Ok(())
+    }
+    #[test]
+    fn coma() -> Result<()> {
+        let tokens = Lexer::new("PRINT 10,20", "test")
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
+        assert_eq!(tokens, vec![TType::Print, TType::Number(10.), TType::Coma, TType::Number(20.)]);
         Ok(())
     }
     #[test]
