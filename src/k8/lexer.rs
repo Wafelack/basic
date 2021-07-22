@@ -13,6 +13,8 @@ pub enum TType {
     Print,
     OpenParen,
     CloseParen,
+    Backslash,
+    LN(u32),
 }
 #[derive(Clone)]
 pub struct Token {
@@ -60,6 +62,7 @@ impl Lexer {
         })
     }
     fn number(&mut self, c: char) -> Result<()> {
+        let ln = self.current == 1 || self.input.chars().nth (self.current - 2) == Some('\n');
         let mut raw = c.to_string();
         while self.peek().unwrap_or('\0').is_digit(10) {
             raw.push(self.advance()?);
@@ -70,10 +73,17 @@ impl Lexer {
         while self.peek().unwrap_or('\0').is_digit(10) {
             raw.push(self.advance()?);
         }
-        self.add_token(TType::Number(match raw.parse::<f64>() {
-            Ok(x) => x,
-            _ => unreachable!(),
-        }));
+        self.add_token(if ln {
+            TType::LN(match raw.parse::<u32>() {
+                Ok(n) => n,
+                _ => unreachable!(),
+            })
+        } else {
+            TType::Number(match raw.parse::<f64>() {
+                Ok(x) => x,
+                _ => unreachable!(),
+            })
+        });
 
         Ok(())
     }
@@ -113,7 +123,11 @@ impl Lexer {
         let current = self.advance()?;
         match current {
             ' ' | '\r' | '\t' => {}
-            '\n' => self.line += 1,
+            '\n' => {
+                self.add_token(TType::Backslash);
+                self.line += 1
+            },
+            '\\' => self.add_token(TType::Backslash),
             '(' => self.add_token(TType::OpenParen),
             ')' => self.add_token(TType::CloseParen),
             '"' => return self.string(),
@@ -166,7 +180,7 @@ mod test {
 
     #[test]
     fn numbers() -> Result<()> {
-        let tokens = Lexer::new("42 3.1415926", "test")
+        let tokens = Lexer::new(" 42 3.1415926", "test")
             .lex()?
             .output
             .into_iter()
@@ -239,6 +253,17 @@ mod test {
         Ok(())
     }
     #[test]
+    fn ln() -> Result<()> {
+        let tokens = Lexer::new("10 PRINT 5\n20 55", "test")
+            .lex()?
+            .output
+            .into_iter()
+            .map(|t| t.ttype)
+            .collect::<Vec<TType>>();
+        assert_eq!(tokens, vec![TType::LN(10), TType::Print, TType::Number(5.), TType::Backslash, TType::LN(20), TType::Number(55.)]);
+        Ok(())
+    }
+    #[test]
     fn builtins() -> Result<()> {
         let tokens = Lexer::new("LETX=5\nPRINT 3", "test")
             .lex()?
@@ -253,6 +278,7 @@ mod test {
                 TType::Ident("X".to_string()),
                 TType::Eq,
                 TType::Number(5.),
+                TType::Backslash,
                 TType::Print,
                 TType::Number(3.)
             ]

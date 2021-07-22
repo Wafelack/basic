@@ -1,7 +1,4 @@
-use std::{
-    env,
-    fmt::{self, Display, Formatter},
-};
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub struct Alert(pub Option<(String, u32)>, pub String);
