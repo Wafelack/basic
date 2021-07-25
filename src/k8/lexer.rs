@@ -1,30 +1,42 @@
 use crate::{error, Result};
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Op {
+    Eq,
+    Neq,
+    Ord(bool /* greater */, bool /* equal */),
+    Arithmetic(char),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum TType {
     String(String),
     Ident(String),
     Number(f64),
     LN(u32),
 
-    Eq,
-    Neq,
-    Ord(bool /* greater */, bool /* equal */),
-    Arithmetic(char),
+    Op(Op),
 
     OpenParen,
     CloseParen,
-    Backslash,
+    EOL,
     Coma,
 
     Let,
     Print,
-    Rem,
     End,
     Stop,
     Read,
     Data,
-    Restore
+    Restore,
+    Input,
+    TTYIn,
+    TTYOut,
+    For,
+    Next,
+    Step,
+    Dim,
+    Goto,
 }
 #[derive(Clone)]
 pub struct Token {
@@ -32,17 +44,34 @@ pub struct Token {
     pub line: u32,
 }
 
-const BUILTINS: [(&str, TType); 8] = [("LET", TType::Let), ("PRINT", TType::Print), ("REM", TType::Rem), ("END", TType::End), ("STOP", TType::Stop), ("DATA", TType::Data), ("RESTORE", TType::Restore), ("READ", TType::Read)];
+const BUILTINS: [(&str, TType); 16] = [
+    ("LET", TType::Let),
+    ("PRINT", TType::Print),
+    ("END", TType::End),
+    ("STOP", TType::Stop),
+    ("DATA", TType::Data),
+    ("RESTORE", TType::Restore),
+    ("READ", TType::Read),
+    ("INPUT", TType::Input),
+    ("TTY IN", TType::TTYIn),
+    ("TTY OUT", TType::TTYOut),
+    ("FOR", TType::For),
+    ("NEXT", TType::Next),
+    ("STEP", TType::Step),
+    ("DIM", TType::Dim),
+    ("GOTO", TType::Goto),
+    ("GO TO", TType::Goto),
+];
 
 pub struct Lexer {
     input: String,
-    output: Vec<Token>,
+    pub output: Vec<Token>,
     line: u32,
     current: usize,
     file: String,
 }
 impl Lexer {
-    pub fn new(input: impl ToString, file: impl ToString) -> Self {
+    pub fn new<T: ToString>(input: T, file: T) -> Self {
         Self {
             input: input.to_string().replace("↑", "^"),
             output: vec![],
@@ -72,7 +101,7 @@ impl Lexer {
         })
     }
     fn number(&mut self, c: char) -> Result<()> {
-        let ln = self.current == 1 || self.input.chars().nth (self.current - 2) == Some('\n');
+        let ln = self.current == 1 || self.input.chars().nth(self.current - 2) == Some('\n');
         let mut raw = c.to_string();
         while self.peek().unwrap_or('\0').is_digit(10) {
             raw.push(self.advance()?);
@@ -131,25 +160,31 @@ impl Lexer {
     }
     fn once(&mut self) -> Result<()> {
         let current = self.advance()?;
+        if self.check_many("REM") {
+            self.current += 2;
+            while !self.finished() && !&['\n', '\\'].contains(&self.peek().unwrap()) {
+                self.advance()?;
+            }
+        }
         match current {
             ' ' | '\r' | '\t' => {}
             '\n' => {
-                self.add_token(TType::Backslash);
+                self.add_token(TType::EOL);
                 self.line += 1
-            },
-            '\\' => self.add_token(TType::Backslash),
+            }
+            '\\' => self.add_token(TType::EOL),
             '(' => self.add_token(TType::OpenParen),
             ')' => self.add_token(TType::CloseParen),
             '"' => return self.string(),
             ',' => self.add_token(TType::Coma),
             x if x.is_digit(10) => return self.number(x),
-            '+' | '-' | '/' | '*' | '^' => self.add_token(TType::Arithmetic(current)),
+            '+' | '-' | '/' | '*' | '^' => self.add_token(TType::Op(Op::Arithmetic(current))),
             '<' | '>' => {
                 let token = if current == '<' && self.peek() == Some('>') {
                     self.advance()?;
-                    TType::Neq
+                    TType::Op(Op::Neq)
                 } else {
-                    TType::Ord(
+                    TType::Op(Op::Ord(
                         current == '>',
                         if self.peek() == Some('=') {
                             self.advance()?;
@@ -157,11 +192,11 @@ impl Lexer {
                         } else {
                             false
                         },
-                    )
+                    ))
                 };
                 self.add_token(token);
             }
-            '=' => self.add_token(TType::Eq),
+            '=' => self.add_token(TType::Op(Op::Eq)),
             x if x.is_alphabetic() => match self.check_builtin() {
                 Some(builtin) => self.add_token(builtin),
                 None => {
@@ -234,21 +269,21 @@ mod test {
             vec![
                 TType::OpenParen,
                 TType::Number(5.),
-                TType::Arithmetic('+'),
+                TType::Op(Op::Arithmetic('+')),
                 TType::Number(5.),
-                TType::Arithmetic('*'),
+                TType::Op(Op::Arithmetic('*')),
                 TType::Number(4.),
                 TType::CloseParen,
-                TType::Eq,
-                TType::Neq,
-                TType::Ord(false, true),
-                TType::Ord(false, false),
-                TType::Ord(true, true),
-                TType::Ord(true, false),
-                TType::Arithmetic('/'),
-                TType::Arithmetic('^'),
-                TType::Arithmetic('^'),
-                TType::Arithmetic('-')
+                TType::Op(Op::Eq),
+                TType::Op(Op::Neq),
+                TType::Op(Op::Ord(false, true)),
+                TType::Op(Op::Ord(false, false)),
+                TType::Op(Op::Ord(true, true)),
+                TType::Op(Op::Ord(true, false)),
+                TType::Op(Op::Arithmetic('/')),
+                TType::Op(Op::Arithmetic('^')),
+                TType::Op(Op::Arithmetic('^')),
+                TType::Op(Op::Arithmetic('-')),
             ]
         );
         Ok(())
@@ -272,7 +307,17 @@ mod test {
             .into_iter()
             .map(|t| t.ttype)
             .collect::<Vec<TType>>();
-        assert_eq!(tokens, vec![TType::LN(10), TType::Print, TType::Number(5.), TType::Backslash, TType::LN(20), TType::Number(55.)]);
+        assert_eq!(
+            tokens,
+            vec![
+                TType::LN(10),
+                TType::Print,
+                TType::Number(5.),
+                TType::EOL,
+                TType::LN(20),
+                TType::Number(55.)
+            ]
+        );
         Ok(())
     }
     #[test]
@@ -283,7 +328,15 @@ mod test {
             .into_iter()
             .map(|t| t.ttype)
             .collect::<Vec<TType>>();
-        assert_eq!(tokens, vec![TType::Print, TType::Number(10.), TType::Coma, TType::Number(20.)]);
+        assert_eq!(
+            tokens,
+            vec![
+                TType::Print,
+                TType::Number(10.),
+                TType::Coma,
+                TType::Number(20.)
+            ]
+        );
         Ok(())
     }
     #[test]
@@ -299,9 +352,9 @@ mod test {
             vec![
                 TType::Let,
                 TType::Ident("X".to_string()),
-                TType::Eq,
+                TType::Op(Op::Eq),
                 TType::Number(5.),
-                TType::Backslash,
+                TType::EOL,
                 TType::Print,
                 TType::Number(3.)
             ]
